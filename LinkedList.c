@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 //int Member(int value, struct list_node_s * head_p);
 struct list_node_s
@@ -71,21 +72,85 @@ int Delete(int value, struct list_node_s** head_pp){
     }
 }
 
+void Traverse(struct list_node_s * node) {
+    while (node != NULL) {
+        printf(" %d ", node->data);
+        node = node->next;
+    }
+}
+
+#define ERR_NO_NUM -1
+#define ERR_NO_MEM -2
+
+int myRandom (int size) {
+    int i, n;
+    static int numNums = 0;
+    static int *numArr = NULL;
+
+    // Initialize with a specific size.
+
+    if (size >= 0) {
+        if (numArr != NULL)
+            free (numArr);
+        if ((numArr = malloc (sizeof(int) * size)) == NULL)
+            return ERR_NO_MEM;
+        for (i = 0; i  < size; i++)
+            numArr[i] = i;
+        numNums = size;
+    }
+
+    // Error if no numbers left in pool.
+
+    if (numNums == 0)
+        return ERR_NO_NUM;
+
+    // Get random number from pool and remove it (rnd in this
+    //   case returns a number between 0 and numNums-1 inclusive).
+
+    n = rand() % numNums;
+    i = numArr[n];
+    numArr[n] = numArr[numNums-1];
+    numNums--;
+    if (numNums == 0) {
+        free (numArr);
+        numArr = 0;
+    }
+
+    return i;
+}
+
+
 int main() {
     struct list_node_s * head = NULL;
+    long thread_count;
+    long n;
+    long m;
 
-    printf("76 is in ll %d\n",Member(76, head));
+//    printf("Enter number of threads :\n");
+//    scanf("%ld", &thread_count);
+
+    printf("Enter  n :\n");
+    scanf("%ld", &n);
+
+//    printf("Enter m :\n");
+//    scanf("%ld", &m);
 
 //    Insert(76, &head);
-//    Insert(56, &head);
-//    Insert(8, &head);
-//    Insert(9, &head);
-//
+//    Insert(7, &head);
+//    Insert(2, &head);
 //    printf("76 is in ll %d\n",Member(76, head));
-//    printf("9 is in ll %d\n",Member(9, head));
-    printf("9 is in ll %d\n",Member(9, head));
-    Delete(9,&head);
-    printf("9 is in ll %d\n",Member(9, head));
+//    Delete(76,&head);
+//    printf("76 is in ll %d\n",Member(76, head));
+//    Traverse(head);
 
+    int i;
+
+    srand (time (NULL));
+    i = myRandom (20);
+    while (i >= 0) {
+        printf ("Number = %3d\n", i);
+        i = myRandom (-1);
+    }
+    printf ("Final  = %3d\n", i);
     return 0;
 }
