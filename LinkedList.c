@@ -182,7 +182,38 @@ int mutexProgram(long int* numOperations, struct list_node_s* head) {
     pthread_mutex_destroy(&lock);
 }
 
-void readWriteLockProgram() {}
+int readWriteLockProgram(long int* numOperations, struct list_node_s* head) {
+    pthread_rwlock_t rw_lock;
+    if (pthread_rwlock_init(&rw_lock, NULL) != 0) {
+        printf("\n rw lock init has failed\n");
+        return 1;
+    }
+    lfsr = time(0);
+    for (int i = 0; i < *numOperations; ++i) {
+        int randomChoice = rand() % 3;
+        int randNum = genUniqueRandNum();
+        if (randomChoice == 0) {
+            printf("Member %d : ", randNum);
+            pthread_rwlock_rdlock(&rw_lock);
+            int result = Member(randNum, head);
+            printf("%d\n", result);
+            pthread_rwlock_unlock(&rw_lock);
+        } else if (randomChoice ==1) {
+            printf("Insert %d : ", randNum);
+            pthread_rwlock_wrlock(&rw_lock);
+            int result = Insert(randNum, &head);
+            printf("%d\n", result);
+            pthread_rwlock_wrlock(&rw_lock);
+        } else if (randomChoice == 2) {
+            printf("Delete %d : ", randNum);
+            pthread_rwlock_wrlock(&rw_lock);
+            int result = Delete(randNum, &head);
+            printf("%d\n", result);
+            pthread_rwlock_wrlock(&rw_lock);
+        }
+    }
+    pthread_rwlock_destroy(&rw_lock);
+}
 
 int main() {
     struct list_node_s * head = NULL;
@@ -196,36 +227,15 @@ int main() {
     printf("Enter number of operations to run : ");
     scanf("%ld", &numOperations);
 
-    // threadHandles = malloc(numThreads * sizeof(pthread_t));
-    // int thread;
-    // for (thread = 0; thread < numThreads; thread++) {
-    //     pthread_create(&threadHandles[thread], NULL, mutexProgram, &numOperations, head);
-    // }
-    // printf("Operation started using %ld threads/n", numThreads);
-    // for (thread = 0; thread < numThreads; thread++) {
-    //     pthread_join(threadHandles[thread], NULL);
-    // }
-    // free(threadHandles);
-
-//    printf("Enter m :\n");
-//    scanf("%ld", &m);
-
-//    Insert(76, &head);
-//    Insert(7, &head);
-//    Insert(2, &head);
-//    printf("76 is in ll %d\n",Member(76, head));
-//    Delete(76,&head);
-//    printf("76 is in ll %d\n",Member(76, head));
-//    Traverse(head);
-
-    // int i;
-
-    // srand (time (NULL));
-    // i = myRandom (20);
-    // while (i >= 0) {
-    //     printf ("Number = %3d\n", i);
-    //     i = myRandom (-1);
-    // }
-    // printf ("Final  = %3d\n", i);
+//     threadHandles = malloc(numThreads * sizeof(pthread_t));
+//     int thread;
+//     for (thread = 0; thread < numThreads; thread++) {
+//         pthread_create(&threadHandles[thread], NULL, mutexProgram, &numOperations, head);
+//     }
+//     printf("Operation started using %ld threads/n", numThreads);
+//     for (thread = 0; thread < numThreads; thread++) {
+//         pthread_join(threadHandles[thread], NULL);
+//     }
+//     free(threadHandles);
     return 0;
 }
