@@ -196,21 +196,16 @@ int main() {
     printf("Enter number of operations to run : ");
     scanf("%ld", &numOperations);
 
-    threadHandles = malloc(numThreads, * sizeof(pthread_t));
-    for (thread = 0; thread < numThreads; thread++) {
-        pthread_create(&threadHandles[thread], NULL, mutexProgram, &numOperations, head);
-    }
-    printf("Operation started using %d threads/n", numThreads);
-    for (thread = 0; thread < numThreads; thread++) {
-        pthread_join(&threadHandles[thread], NULL);
-    }
-    free(threadHandles);
-
-    // printf("m & n %ld %ld\n", n, m);
-    // serialProgram(&numOperations, head);
-    mutexProgram(&numOperations, head);
-    printf("Printing Linked List\n");
-    Traverse(head);
+    // threadHandles = malloc(numThreads * sizeof(pthread_t));
+    // int thread;
+    // for (thread = 0; thread < numThreads; thread++) {
+    //     pthread_create(&threadHandles[thread], NULL, mutexProgram, &numOperations, head);
+    // }
+    // printf("Operation started using %ld threads/n", numThreads);
+    // for (thread = 0; thread < numThreads; thread++) {
+    //     pthread_join(threadHandles[thread], NULL);
+    // }
+    // free(threadHandles);
 
 //    printf("Enter m :\n");
 //    scanf("%ld", &m);
