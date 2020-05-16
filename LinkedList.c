@@ -191,7 +191,9 @@ void *mutexProgram(void *ptr)
 
     for (int i = 0; i < numOperations; ++i)
     {
+        pthread_mutex_lock(&lock);
         int randNum = genUniqueRandNum(&threadId);
+        pthread_mutex_unlock(&lock);
         int randomChoice = randNum % 3;
         if (randomChoice == 0)
         {
@@ -229,9 +231,37 @@ void *mutexProgram(void *ptr)
     return EXIT_SUCCESS;
 }
 
-void *readWriteLockProgram(void *ptr)
-{
-    return EXIT_SUCCESS;
+void readWriteLockProgram(long int* numOperations, struct list_node_s* head) {
+    // pthread_rwlock_t rw_lock;
+    // if (pthread_rwlock_init(&rw_lock, NULL) != 0) {
+    //     printf("\n rw lock init has failed\n");
+    //     return 1;
+    // }
+    // long lfsr = time(0);
+    // for (int i = 0; i < *numOperations; ++i) {
+    //     int randomChoice = rand() % 3;
+    //     int randNum = genUniqueRandNum(&lfsr);
+    //     if (randomChoice == 0) {
+    //         printf("Member %d : ", randNum);
+    //         pthread_rwlock_rdlock(&rw_lock);
+    //         int result = Member(randNum, head);
+    //         printf("%d\n", result);
+    //         pthread_rwlock_unlock(&rw_lock);
+    //     } else if (randomChoice ==1) {
+    //         printf("Insert %d : ", randNum);
+    //         pthread_rwlock_wrlock(&rw_lock);
+    //         int result = Insert(randNum, &head);
+    //         printf("%d\n", result);
+    //         pthread_rwlock_wrlock(&rw_lock);
+    //     } else if (randomChoice == 2) {
+    //         printf("Delete %d : ", randNum);
+    //         pthread_rwlock_wrlock(&rw_lock);
+    //         int result = Delete(randNum, &head);
+    //         printf("%d\n", result);
+    //         pthread_rwlock_wrlock(&rw_lock);
+    //     }
+    // }
+    // pthread_rwlock_destroy(&rw_lock);
 }
 
 int main()
