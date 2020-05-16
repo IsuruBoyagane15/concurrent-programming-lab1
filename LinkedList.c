@@ -156,8 +156,6 @@ void Traverse(struct list_node_s *node)
 
 void serialProgram(long int *numOperations, struct list_node_s **head)
 {
-    printf("Head in serial before compute %p\n", *head);
-    // lfsr = time(0);
     for (int i = 0; i < *numOperations; ++i)
     {
         int randomChoice = rand() % 3;
@@ -182,7 +180,6 @@ void serialProgram(long int *numOperations, struct list_node_s **head)
             printf("%d\n", Delete(randNum, head));
         }
     }
-    printf("Head in serial after compute %p\n", *head);
 }
 
 void *mutexProgram(void *ptr)
@@ -192,8 +189,6 @@ void *mutexProgram(void *ptr)
     long threadId = args -> threadId;
     struct list_node_s **head = args->head;
 
-    // printf("lsfr for thread %ld is %ld\n", threadId, threadId);
-    // printf("pointer for thread is %p\n",& args -> threadId);
     for (int i = 0; i < numOperations; ++i)
     {
         int randNum = genUniqueRandNum(&threadId);
@@ -236,15 +231,6 @@ void *mutexProgram(void *ptr)
 
 void *readWriteLockProgram(void *ptr)
 {
-    struct thread_args *args = (struct thread_args *)ptr;
-    long numop = args->numOperations;
-
-    // long *numop;
-    // numop= (long *) threadargs.numOperations;
-
-    // struct thread_args threadArgs = (struct thread_args) threadargs;
-    // long numoperations = threadArgs.numOperations;
-    printf("Num operations %ld\n", numop);
     return EXIT_SUCCESS;
 }
 
@@ -261,16 +247,6 @@ int main()
     printf("Enter number of operations to run : ");
     scanf("%ld", &numOperations);
 
-    // if (pthread_mutex_init(&lock, NULL) != 0)
-    // {
-    //     printf("\n mutex init has failed\n");
-    //     // return EXIT_FAILURE;
-    // }
-
-    // printf("before serial");
-    // serialProgram(&numOperations, &head);
-    // printf("after serial");
-
     threadHandles = malloc(numThreads * sizeof(pthread_t));
     long thread;
     printf("pointer for thread id in main is %p\n",&thread);
@@ -282,7 +258,6 @@ int main()
         thread_args_struct -> threadId = thread + 1000;
         pthread_create(&threadHandles[thread], NULL, mutexProgram, (void *)thread_args_struct);
     }
-    // printf("Operation started using %ld threads\n", numThreads);
     for (thread = 0; thread < numThreads; ++thread)
     {
         pthread_join(threadHandles[thread], NULL);
