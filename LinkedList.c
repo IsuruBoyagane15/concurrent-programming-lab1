@@ -2,47 +2,61 @@
 #include <stdlib.h>
 #include <time.h>
 #include <pthread.h>
+#include <string.h>
 
 unsigned bit;
-unsigned short lfsr;
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
-unsigned genUniqueRandNum()
-{
-    bit = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 5)) & 1;
-    return lfsr = (lfsr >> 1) | (bit << 15);
+unsigned genUniqueRandNum(long *lfsr)
+{   
+    bit = ((*lfsr >> 0) ^ (*lfsr >> 2) ^ (*lfsr >> 3) ^ (*lfsr >> 5)) & 1;
+    return *lfsr = (*lfsr >> 1) | (bit << 15);
 }
 
 //int Member(int value, struct list_node_s * head_p);
 struct list_node_s
 {
     int data;
-    struct list_node_s * next;
+    struct list_node_s *next;
 };
 
-int Member(int value, struct list_node_s * head_p){
-    struct list_node_s * curr_p = head_p;
+struct thread_args
+{
+    long numOperations;
+    long threadId;
+    struct list_node_s **head;
+};
 
-    while (curr_p != NULL && curr_p ->data < value)
-        curr_p = curr_p ->next;
+int Member(int value, struct list_node_s *head_p)
+{
+    struct list_node_s *curr_p = head_p;
 
-    if (curr_p == NULL || curr_p ->data > value){
+    while (curr_p != NULL && curr_p->data < value)
+        curr_p = curr_p->next;
+
+    if (curr_p == NULL || curr_p->data > value)
+    {
         return 0;
     }
-    else{
+    else
+    {
         return 1;
     }
 }
 
-int Insert(int value, struct list_node_s** head_pp){
-    struct list_node_s* curr_p = *head_pp;
-    struct list_node_s* pred_p = NULL;
-    struct list_node_s* temp_p;
+int Insert(int value, struct list_node_s **head_pp)
+{
+    struct list_node_s *curr_p = *head_pp;
+    struct list_node_s *pred_p = NULL;
+    struct list_node_s *temp_p;
 
-    while(curr_p != NULL && curr_p ->data <value){
+    while (curr_p != NULL && curr_p->data < value)
+    {
         pred_p = curr_p;
-        curr_p =curr_p->next;
+        curr_p = curr_p->next;
     }
-    if (curr_p == NULL || curr_p->data > value){
+    if (curr_p == NULL || curr_p->data > value)
+    {
         temp_p = malloc(sizeof(struct list_node_s));
         temp_p->data = value;
         temp_p->next = curr_p;
@@ -52,39 +66,50 @@ int Insert(int value, struct list_node_s** head_pp){
             pred_p->next = temp_p;
         return 1;
     }
-    else{
+    else
+    {
         return 0;
     }
-
 }
 
-int Delete(int value, struct list_node_s** head_pp){
-    struct list_node_s* curr_p = *head_pp;
-    struct list_node_s* pred_p = NULL;
+int Delete(int value, struct list_node_s **head_pp)
+{
+    struct list_node_s *curr_p = *head_pp;
+    struct list_node_s *pred_p = NULL;
 
-    while(curr_p != NULL && curr_p->data < value){
+    while (curr_p != NULL && curr_p->data < value)
+    {
         pred_p = curr_p;
         curr_p = curr_p->next;
     }
 
-    if (curr_p != NULL && curr_p->data == value){
-        if (pred_p == NULL){
+    if (curr_p != NULL && curr_p->data == value)
+    {
+        if (pred_p == NULL)
+        {
             *head_pp = curr_p->next;
             free(curr_p);
-        } else{
+        }
+        else
+        {
             pred_p->next = curr_p->next;
             free(curr_p);
         }
         return 1;
-    } else{
+    }
+    else
+    {
         return 0;
     }
 }
 
-void Traverse(struct list_node_s * node) {
-    while (node != NULL) {
-        printf(" %d ", node->data);
-        node = node->next;
+void Traverse(struct list_node_s *node)
+{
+    struct list_node_s* traversingNode = node;
+    while (traversingNode != NULL)
+    {
+        printf(" %d ", traversingNode -> data);
+        traversingNode = traversingNode->next;
     }
     printf("\n");
 }
@@ -129,103 +154,143 @@ void Traverse(struct list_node_s * node) {
 //     return i;
 // }
 
-void serialProgram(long int* numOperations, struct list_node_s* head) {
-    lfsr = time(0);
-    for (int i = 0; i < *numOperations; ++i) {
+void serialProgram(long int *numOperations, struct list_node_s **head)
+{
+    printf("Head in serial before compute %p\n", *head);
+    // lfsr = time(0);
+    for (int i = 0; i < *numOperations; ++i)
+    {
         int randomChoice = rand() % 3;
-        int randNum = genUniqueRandNum();
-        if (randomChoice == 0) {
+        randomChoice = rand() % 3;
+        randomChoice = rand() % 3;
+        // int randNum = genUniqueRandNum();
+        int randNum = 5;
+        if (randomChoice == 0)
+        {
             printf("Member %d : ", randNum);
-            printf("%d\n",Member(randNum, head));
-        } else if (randomChoice ==1) {
+            printf("%d\n", Member(randNum, *head));
+        }
+        else if (randomChoice == 1)
+        {
             printf("Insert %d : ", randNum);
-            printf("%d\n",Insert(randNum, &head));
-        } else if (randomChoice == 2) {
+            printf("%d\n", Insert(randNum, head));
+            printf("Member check %d\n", Member(randNum, *head));
+        }
+        else if (randomChoice == 2)
+        {
             printf("Delete %d : ", randNum);
-            printf("%d\n",Delete(randNum, &head));
+            printf("%d\n", Delete(randNum, head));
         }
     }
-    printf("Printing Linked List\n");
-    Traverse(head);
+    printf("Head in serial after compute %p\n", *head);
 }
 
-int mutexProgram(long int* numOperations, struct list_node_s* head) {
-    pthread_mutex_t lock;
-    if (pthread_mutex_init(&lock, NULL) != 0) { 
-        printf("\n mutex init has failed\n"); 
-        return 1; 
-    }
-    lfsr = time(0);
-    for (int i = 0; i < *numOperations; ++i) {
-        int randomChoice = rand() % 3;
-        int randNum = genUniqueRandNum();
-        if (randomChoice == 0) {
+void *mutexProgram(void *ptr)
+{
+    struct thread_args *args = (struct thread_args *)ptr;
+    long numOperations = args -> numOperations;
+    long threadId = args -> threadId;
+    struct list_node_s **head = args->head;
+
+    // printf("lsfr for thread %ld is %ld\n", threadId, threadId);
+    // printf("pointer for thread is %p\n",& args -> threadId);
+    for (int i = 0; i < numOperations; ++i)
+    {
+        int randNum = genUniqueRandNum(&threadId);
+        int randomChoice = randNum % 3;
+        if (randomChoice == 0)
+        {
+            
+            pthread_mutex_lock(&lock);
             printf("Member %d : ", randNum);
-            pthread_mutex_lock(&lock);
-            int result = Member(randNum, head);
+            int result = Member(randNum, *head);
             printf("%d\n", result);
             pthread_mutex_unlock(&lock);
-        } else if (randomChoice ==1) {
+        }
+        else if (randomChoice == 1)
+        {
+            
+            pthread_mutex_lock(&lock);
             printf("Insert %d : ", randNum);
-            pthread_mutex_lock(&lock);
-            int result = Insert(randNum, &head);
+            int result = Insert(randNum, head);
             printf("%d\n", result);
             pthread_mutex_unlock(&lock);
-        } else if (randomChoice == 2) {
+        }
+        else if (randomChoice == 2)
+        {
+            
+            pthread_mutex_lock(&lock);
             printf("Delete %d : ", randNum);
-            pthread_mutex_lock(&lock);
-            int result = Delete(randNum, &head);
+            int result = Delete(randNum, head);
             printf("%d\n", result);
             pthread_mutex_unlock(&lock);
+        }
+        else
+        {
+            printf("none");
         }
     }
     pthread_mutex_destroy(&lock);
+    return EXIT_SUCCESS;
 }
 
-void readWriteLockProgram() {}
+void *readWriteLockProgram(void *ptr)
+{
+    struct thread_args *args = (struct thread_args *)ptr;
+    long numop = args->numOperations;
 
-int main() {
-    struct list_node_s * head = NULL;
+    // long *numop;
+    // numop= (long *) threadargs.numOperations;
+
+    // struct thread_args threadArgs = (struct thread_args) threadargs;
+    // long numoperations = threadArgs.numOperations;
+    printf("Num operations %ld\n", numop);
+    return EXIT_SUCCESS;
+}
+
+int main()
+{
+    struct list_node_s* head = NULL;
     long numThreads;
     long numOperations;
 
-    pthread_t* threadHandles;
+    pthread_t *threadHandles;
 
     printf("Enter number of threads : ");
     scanf("%ld", &numThreads);
     printf("Enter number of operations to run : ");
     scanf("%ld", &numOperations);
 
-    // threadHandles = malloc(numThreads * sizeof(pthread_t));
-    // int thread;
-    // for (thread = 0; thread < numThreads; thread++) {
-    //     pthread_create(&threadHandles[thread], NULL, mutexProgram, &numOperations, head);
+    // if (pthread_mutex_init(&lock, NULL) != 0)
+    // {
+    //     printf("\n mutex init has failed\n");
+    //     // return EXIT_FAILURE;
     // }
-    // printf("Operation started using %ld threads/n", numThreads);
-    // for (thread = 0; thread < numThreads; thread++) {
-    //     pthread_join(threadHandles[thread], NULL);
-    // }
-    // free(threadHandles);
 
-//    printf("Enter m :\n");
-//    scanf("%ld", &m);
+    // printf("before serial");
+    // serialProgram(&numOperations, &head);
+    // printf("after serial");
 
-//    Insert(76, &head);
-//    Insert(7, &head);
-//    Insert(2, &head);
-//    printf("76 is in ll %d\n",Member(76, head));
-//    Delete(76,&head);
-//    printf("76 is in ll %d\n",Member(76, head));
-//    Traverse(head);
+    threadHandles = malloc(numThreads * sizeof(pthread_t));
+    long thread;
+    printf("pointer for thread id in main is %p\n",&thread);
+    for (thread = 0; thread < numThreads; ++thread)
+    {
+        struct thread_args *thread_args_struct = malloc(sizeof(struct thread_args));
+        thread_args_struct -> numOperations = numOperations;
+        thread_args_struct -> head = &head;
+        thread_args_struct -> threadId = thread + 1000;
+        pthread_create(&threadHandles[thread], NULL, mutexProgram, (void *)thread_args_struct);
+    }
+    // printf("Operation started using %ld threads\n", numThreads);
+    for (thread = 0; thread < numThreads; ++thread)
+    {
+        pthread_join(threadHandles[thread], NULL);
+    }
+    free(threadHandles);
+    pthread_mutex_destroy(&lock);
 
-    // int i;
+    Traverse(head);
 
-    // srand (time (NULL));
-    // i = myRandom (20);
-    // while (i >= 0) {
-    //     printf ("Number = %3d\n", i);
-    //     i = myRandom (-1);
-    // }
-    // printf ("Final  = %3d\n", i);
     return 0;
 }
