@@ -313,7 +313,7 @@ void runRWLockProgram(struct list_node_s **header, float probMember, float probI
     for (thread = 0; thread < numThreads; ++thread)
     {
         struct thread_args *thread_args_struct = malloc(sizeof(struct thread_args));
-        thread_args_struct->numOperations = numOperations / numThreads;
+        thread_args_struct->numOperations = numOperations;
         thread_args_struct->head = head;
         thread_args_struct->threadId = thread;
         thread_args_struct->probMember = probMember;
