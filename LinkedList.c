@@ -8,7 +8,7 @@ unsigned bit;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_rwlock_t rw_lock = PTHREAD_RWLOCK_INITIALIZER;
 
-unsigned genUniqueRandNum(long *lfsr)
+unsigned genUniqueRandNum(unsigned short *lfsr)
 {
     bit = ((*lfsr >> 0) ^ (*lfsr >> 2) ^ (*lfsr >> 3) ^ (*lfsr >> 5)) & 1;
     return *lfsr = (*lfsr >> 1) | (bit << 15);
@@ -24,7 +24,7 @@ struct list_node_s
 struct thread_args
 {
     long numOperations;
-    long threadId;
+    unsigned short threadId;
     float probMember;
     float probInsert;
     float probDelete;
@@ -120,7 +120,7 @@ void Traverse(struct list_node_s *node)
 
 void populateLinkedList(struct list_node_s **head, int n)
 {
-    long lfsr = time(0);
+    unsigned short lfsr = time(0);
     for (int i = 0; i < n; ++i)
     {
         Insert(genUniqueRandNum(&lfsr), head);
@@ -131,8 +131,9 @@ void SerialProgram(long int *numOperations, struct list_node_s **head, float pro
 {
     for (int i = 0; i < *numOperations; ++i)
     {
-        long int lfsr = rand();
+        unsigned short lfsr = rand();
         int randNum = genUniqueRandNum(&lfsr);
+        printf("randome num : %d\n", randNum);
         int randomChoice = rand() % 101;
         if (randomChoice < probMember)
         {
@@ -144,7 +145,7 @@ void SerialProgram(long int *numOperations, struct list_node_s **head, float pro
             // printf("Insert %d : ", randNum);
             Insert(randNum, head);
         }
-        else if (randomChoice >= probMember + probInsert  && randomChoice < probMember + probInsert + probDelete)
+        else if (randomChoice >= probMember + probInsert && randomChoice < probMember + probInsert + probDelete)
         {
             // printf("Delete %d : ", randNum);
             Delete(randNum, head);
@@ -156,7 +157,7 @@ void *mutexProgram(void *ptr)
 {
     struct thread_args *args = (struct thread_args *)ptr;
     long numOperations = args->numOperations;
-    long threadId = args->threadId;
+    unsigned short threadId = args->threadId;
     float probMember = args->probMember;
     float probInsert = args->probInsert;
     float probDelete = args->probDelete;
@@ -198,15 +199,15 @@ void *readWriteLockProgram(void *ptr)
 {
     struct thread_args *args = (struct thread_args *)ptr;
     long numOperations = args->numOperations;
-    long threadId = args -> threadId;
-    float probMember = args -> probMember;
-    float probInsert = args -> probInsert;
-    float probDelete = args -> probDelete;
+    unsigned short threadId = args->threadId;
+    float probMember = args->probMember;
+    float probInsert = args->probInsert;
+    float probDelete = args->probDelete;
     struct list_node_s **head = args->head;
 
     for (int i = 0; i < numOperations; ++i)
     {
-        int randNum = genUniqueRandNum(&threadId);
+        unsigned short randNum = genUniqueRandNum(&threadId);
         int randomChoice = rand() % 101;
         if (randomChoice < probMember)
         {
@@ -261,7 +262,7 @@ void runMutexProgram(struct list_node_s **header, float probMember, float probIn
     scanf("%ld", &numOperations);
 
     threadHandles = malloc(numThreads * sizeof(pthread_t));
-    long thread;
+    unsigned short thread;
     for (thread = 0; thread < numThreads; ++thread)
     {
         struct thread_args *thread_args_struct = malloc(sizeof(struct thread_args));
@@ -296,7 +297,7 @@ void runRWLockProgram(struct list_node_s **header, float probMember, float probI
     scanf("%ld", &numOperations);
 
     threadHandles = malloc(numThreads * sizeof(pthread_t));
-    long thread;
+    unsigned short thread;
     for (thread = 0; thread < numThreads; ++thread)
     {
         struct thread_args *thread_args_struct = malloc(sizeof(struct thread_args));
@@ -319,6 +320,13 @@ void runRWLockProgram(struct list_node_s **header, float probMember, float probI
 
 int main()
 {
+    // int i = 0;
+    // unsigned short lfsr = 140;
+    // for (i = 0; i < 1000; i++)
+    // {
+    //     int randNum = genUniqueRandNum(&lfsr);
+    //     printf("random %d\n", randNum);
+    // }
     int numKeys;
     float probMember;
     float probInsert;
