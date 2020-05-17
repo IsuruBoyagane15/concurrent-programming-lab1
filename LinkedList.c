@@ -3,10 +3,15 @@
 #include <time.h>
 #include <pthread.h>
 #include <string.h>
+#include <sys/time.h>
 
 unsigned bit;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_rwlock_t rw_lock = PTHREAD_RWLOCK_INITIALIZER;
+int *operationsArray;
+int memberOpCount;
+int insertOpCount;
+int deleteOpCount;
 
 unsigned genUniqueRandNum(unsigned short *lfsr)
 {
@@ -25,9 +30,6 @@ struct thread_args
 {
     long numOperations;
     unsigned short threadId;
-    float probMember;
-    float probInsert;
-    float probDelete;
     long numThreads;
     short unsigned seed;
     struct list_node_s **head;
@@ -129,25 +131,23 @@ void populateLinkedList(struct list_node_s **head, int n)
     }
 }
 
-void SerialProgram(long int *numOperations, struct list_node_s **head, float probMember, float probInsert, float probDelete)
+void SerialProgram(int numOperations, struct list_node_s **head)
 {
-    for (int i = 0; i < *numOperations; ++i)
+    for (int i = 0; i < numOperations; ++i)
     {
         unsigned short lfsr = rand();
         int randNum = genUniqueRandNum(&lfsr);
-        printf("randome num : %d\n", randNum);
-        int randomChoice = rand() % 101;
-        if (randomChoice < probMember)
+        if (operationsArray[i] < memberOpCount)
         {
             // printf("Member %d : ", randNum);
             Member(randNum, *head);
         }
-        else if (randomChoice >= probMember && randomChoice < probMember + probInsert)
+        else if (operationsArray[i] >= memberOpCount && operationsArray[i] < memberOpCount + insertOpCount)
         {
             // printf("Insert %d : ", randNum);
             Insert(randNum, head);
         }
-        else if (randomChoice >= probMember + probInsert && randomChoice < probMember + probInsert + probDelete)
+        else if (operationsArray[i] >= memberOpCount + insertOpCount && operationsArray[i] < memberOpCount + insertOpCount + deleteOpCount)
         {
             // printf("Delete %d : ", randNum);
             Delete(randNum, head);
@@ -160,42 +160,39 @@ void *mutexProgram(void *ptr)
     struct thread_args *args = (struct thread_args *)ptr;
     long numOperations = args->numOperations;
     unsigned short threadId = args->threadId;
-    float probMember = args->probMember;
-    float probInsert = args->probInsert;
-    float probDelete = args->probDelete;
     long numThreads = args->numThreads;
     short unsigned seed = args->seed;
     struct list_node_s **head = args->head;
 
-    for (int i = 0; i < numOperations; ++i){
-        if (i%numThreads == threadId)
+    for (int i = threadId; i < numOperations; i = i + numThreads)
+    {
+        int randNum = genUniqueRandNum(&seed);
+        if (operationsArray[i] < memberOpCount)
         {
-            int randNum = genUniqueRandNum(&seed);
-            int randomChoice = rand() % 101;
-            if (randomChoice < probMember)
-            {
-                pthread_mutex_lock(&lock);
-                // printf("Member %d : ", randNum);
-                Member(randNum, *head);
-                // printf("%d\n", result);
-                pthread_mutex_unlock(&lock);
-            }
-            else if (randomChoice >= probMember && randomChoice < probMember + probInsert)
-            {
-                pthread_mutex_lock(&lock);
-                // printf("Insert %d : ", randNum);
-                Insert(randNum, head);
-                // printf("%d\n", result);
-                pthread_mutex_unlock(&lock);
-            }
-            else if (randomChoice >= probMember + probInsert && randomChoice < probMember + probInsert + probDelete)
-            {
-                pthread_mutex_lock(&lock);
-                // printf("Delete %d : ", randNum);
-                Delete(randNum, head);
-                // printf("%d\n", result);
-                pthread_mutex_unlock(&lock);
-            }
+            // printf("inside for member\n");
+            pthread_mutex_lock(&lock);
+            // printf("Member %d : ", randNum);
+            Member(randNum, *head);
+            // printf("%d\n", result);
+            pthread_mutex_unlock(&lock);
+        }
+        else if (operationsArray[i] >= memberOpCount && operationsArray[i] < memberOpCount + insertOpCount)
+        {
+            // printf("inside for insert\n");
+            pthread_mutex_lock(&lock);
+            // printf("Insert %d : ", randNum);
+            Insert(randNum, head);
+            // printf("%d\n", result);
+            pthread_mutex_unlock(&lock);
+        }
+        else if (operationsArray[i] >= memberOpCount + insertOpCount && operationsArray[i] < memberOpCount + insertOpCount + deleteOpCount)
+        {
+            // printf("inside for delete\n");
+            pthread_mutex_lock(&lock);
+            // printf("Delete %d : ", randNum);
+            Delete(randNum, head);
+            // printf("%d\n", result);
+            pthread_mutex_unlock(&lock);
         }
     }
     return EXIT_SUCCESS;
@@ -206,70 +203,55 @@ void *readWriteLockProgram(void *ptr)
     struct thread_args *args = (struct thread_args *)ptr;
     long numOperations = args->numOperations;
     unsigned short threadId = args->threadId;
-    float probMember = args->probMember;
-    float probInsert = args->probInsert;
-    float probDelete = args->probDelete;
     long numThreads = args->numThreads;
     short unsigned seed = args->seed;
     struct list_node_s **head = args->head;
 
-    for (int i = 0; i < numOperations; ++i)
+    for (int i = threadId; i < numOperations; i = i + numThreads)
     {
-        if (i%numThreads == threadId){
-            unsigned short randNum = genUniqueRandNum(&seed);
-            int randomChoice = rand() % 101;
-            if (randomChoice < probMember)
-            {
-                pthread_rwlock_rdlock(&rw_lock);
-                // printf("Member %d : ", randNum);
-                Member(randNum, *head);
-                // printf("%d\n", result);
-                pthread_rwlock_unlock(&rw_lock);
-            }
-            else if (randomChoice >= probMember && randomChoice < probMember + probInsert)
-            {
-                pthread_rwlock_wrlock(&rw_lock);
-                // printf("Insert %d : ", randNum);
-                Insert(randNum, head);
-                // printf("%d\n", result);
-                pthread_rwlock_unlock(&rw_lock);
-            }
-            else if (randomChoice >= probMember + probInsert && randomChoice < probMember + probInsert + probDelete)
-            {
-                pthread_rwlock_wrlock(&rw_lock);
-                // printf("Delete %d : ", randNum);
-                Delete(randNum, head);
-                // printf("%d\n", result);
-                pthread_rwlock_unlock(&rw_lock);
-            }
+        int randNum = genUniqueRandNum(&seed);
+        if (operationsArray[i] < memberOpCount)
+        {
+            pthread_rwlock_rdlock(&rw_lock);
+            // printf("Member %d : ", randNum);
+            Member(randNum, *head);
+            // printf("%d\n", result);
+            pthread_rwlock_unlock(&rw_lock);
+        }
+        else if (operationsArray[i] >= memberOpCount && operationsArray[i] < memberOpCount + insertOpCount)
+        {
+            pthread_rwlock_wrlock(&rw_lock);
+            // printf("Insert %d : ", randNum);
+            Insert(randNum, head);
+            // printf("%d\n", result);
+            pthread_rwlock_unlock(&rw_lock);
+        }
+        else if (operationsArray[i] >= memberOpCount + insertOpCount && operationsArray[i] < memberOpCount + insertOpCount + deleteOpCount)
+        {
+            pthread_rwlock_wrlock(&rw_lock);
+            // printf("Delete %d : ", randNum);
+            Delete(randNum, head);
+            // printf("%d\n", result);
+            pthread_rwlock_unlock(&rw_lock);
         }
     }
     return EXIT_SUCCESS;
 }
 
-void runSerialProgram(struct list_node_s **header, float probMember, float probInsert, float probDelete)
+void runSerialProgram(struct list_node_s **header, int numOperations)
 {
     struct list_node_s **head = header;
-    long numOperations;
-
-    printf("Enter number of operations to run : ");
-    scanf("%ld", &numOperations);
-
-    SerialProgram(&numOperations, head, probMember, probInsert, probDelete);
+    SerialProgram(numOperations, head);
 }
 
-void runMutexProgram(struct list_node_s **header, float probMember, float probInsert, float probDelete)
+void runMutexProgram(struct list_node_s **header, int numOperations)
 {
     struct list_node_s **head = header;
     long numThreads;
-    long numOperations;
-
     pthread_t *threadHandles;
 
     printf("Enter number of threads : ");
     scanf("%ld", &numThreads);
-    printf("Enter number of operations to run : ");
-    scanf("%ld", &numOperations);
 
     threadHandles = malloc(numThreads * sizeof(pthread_t));
     unsigned short thread;
@@ -279,9 +261,6 @@ void runMutexProgram(struct list_node_s **header, float probMember, float probIn
         thread_args_struct->numOperations = numOperations;
         thread_args_struct->head = head;
         thread_args_struct->threadId = thread;
-        thread_args_struct->probMember = probMember;
-        thread_args_struct->probInsert = probInsert;
-        thread_args_struct->probDelete = probDelete;
         thread_args_struct->numThreads = numThreads;
         thread_args_struct->seed = thread + 1000;
         pthread_create(&threadHandles[thread], NULL, mutexProgram, (void *)thread_args_struct);
@@ -295,18 +274,14 @@ void runMutexProgram(struct list_node_s **header, float probMember, float probIn
     pthread_mutex_destroy(&lock);
 }
 
-void runRWLockProgram(struct list_node_s **header, float probMember, float probInsert, float probDelete)
+void runRWLockProgram(struct list_node_s **header, int numOperations)
 {
     struct list_node_s **head = header;
     long numThreads;
-    long numOperations;
-
     pthread_t *threadHandles;
 
     printf("Enter number of threads : ");
     scanf("%ld", &numThreads);
-    printf("Enter number of operations to run : ");
-    scanf("%ld", &numOperations);
 
     threadHandles = malloc(numThreads * sizeof(pthread_t));
     unsigned short thread;
@@ -316,9 +291,6 @@ void runRWLockProgram(struct list_node_s **header, float probMember, float probI
         thread_args_struct->numOperations = numOperations;
         thread_args_struct->head = head;
         thread_args_struct->threadId = thread;
-        thread_args_struct->probMember = probMember;
-        thread_args_struct->probInsert = probInsert;
-        thread_args_struct->probDelete = probDelete;
         thread_args_struct->numThreads = numThreads;
         thread_args_struct->seed = thread + 1000;
 
@@ -333,21 +305,51 @@ void runRWLockProgram(struct list_node_s **header, float probMember, float probI
     pthread_mutex_destroy(&lock);
 }
 
+void createArray(int numOperations)
+{
+    operationsArray = malloc(sizeof(int) * numOperations);
+    for (int i = 0; i < numOperations; ++i)
+    {
+        operationsArray[i] = i;
+    }
+}
+
+void shuffleArray(int n)
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    int usec = tv.tv_usec;
+    srand48(usec);
+    if (n > 1)
+    {
+        int i;
+        for (i = n - 1; i > 0; i--)
+        {
+            size_t j = (unsigned int)(drand48() * (i + 1));
+            int t = operationsArray[j];
+            operationsArray[j] = operationsArray[i];
+            operationsArray[i] = t;
+        }
+    }
+}
+
+void assignOperationCounts(int numOperations,float probMember, float probInsert, float probDelete) {
+    memberOpCount = numOperations * probMember;
+    insertOpCount = numOperations * probInsert;
+    deleteOpCount = numOperations * probDelete;
+}
+
 int main()
 {
-    // int i = 0;
-    // unsigned short lfsr = 140;
-    // for (i = 0; i < 1000; i++)
-    // {
-    //     int randNum = genUniqueRandNum(&lfsr);
-    //     printf("random %d\n", randNum);
-    // }
     int numKeys;
     float probMember;
     float probInsert;
     float probDelete;
+    long numOperations;
     printf("Enter amount of keys to populate : ");
     scanf("%d", &numKeys);
+    printf("Enter number of operations to run : ");
+    scanf("%ld", &numOperations);
     printf("Enter probability of Member operations : ");
     scanf("%f", &probMember);
     printf("Enter probability of Insert operations : ");
@@ -355,11 +357,15 @@ int main()
     printf("Enter probability of Delete operations : ");
     scanf("%f", &probDelete);
 
+    createArray(numOperations);
+    shuffleArray(numOperations);
+    assignOperationCounts(numOperations, probMember, probInsert, probDelete);
+
     struct list_node_s *head = NULL;
     populateLinkedList(&head, numKeys);
-//    runSerialProgram(&head, probMember * 100, probInsert * 100, probDelete * 100);
-    runMutexProgram(&head, probMember * 100, probInsert * 100, probDelete * 100);
-//    runRWLockProgram(&head, probMember * 100, probInsert * 100, probDelete * 100);
+    // runSerialProgram(&head, numOperations);
+    // runMutexProgram(&head, numOperations);
+    runRWLockProgram(&head, numOperations);
     Traverse(head);
     return 0;
 }
