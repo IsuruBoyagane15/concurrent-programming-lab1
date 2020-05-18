@@ -141,17 +141,18 @@ void SerialProgram(int numOperations, struct list_node_s **head)
     {
         unsigned short lfsr = rand();
         int randNum = genUniqueRandNum(&lfsr);
-        if (operationsArray[i] < memberOpCount)
+//        printf("%d,", operationsArray[i]);
+        if (operationsArray[i] <= memberOpCount)
         {
              printf("%d Member %d \n",i, randNum);
             Member(randNum, *head);
         }
-        else if (operationsArray[i] >= memberOpCount && operationsArray[i] < memberOpCount + insertOpCount)
+        else if (operationsArray[i] > memberOpCount && operationsArray[i] <= memberOpCount + insertOpCount)
         {
              printf("%d Insert %d \n",i, randNum);
             Insert(randNum, head);
         }
-        else if (operationsArray[i] >= memberOpCount + insertOpCount && operationsArray[i] < memberOpCount + insertOpCount + deleteOpCount)
+        else if (operationsArray[i] > memberOpCount + insertOpCount && operationsArray[i] <= memberOpCount + insertOpCount + deleteOpCount)
         {
              printf("%d Delete %d \n",i, randNum);
             Delete(randNum, head);
