@@ -125,10 +125,14 @@ void Traverse(struct list_node_s *node)
 void populateLinkedList(struct list_node_s **head, int n)
 {
     unsigned short lfsr = time(0);
+    printf("\npopulating %d numbers...\n",n);
     for (int i = 0; i < n; ++i)
     {
-        Insert(genUniqueRandNum(&lfsr), head);
+        int a = genUniqueRandNum(&lfsr);
+        Insert(a, head);
+        printf("%d %d\n",i, a);
     }
+    printf("\n");
 }
 
 void SerialProgram(int numOperations, struct list_node_s **head)
@@ -139,20 +143,21 @@ void SerialProgram(int numOperations, struct list_node_s **head)
         int randNum = genUniqueRandNum(&lfsr);
         if (operationsArray[i] < memberOpCount)
         {
-            // printf("Member %d : ", randNum);
+             printf("%d Member %d \n",i, randNum);
             Member(randNum, *head);
         }
         else if (operationsArray[i] >= memberOpCount && operationsArray[i] < memberOpCount + insertOpCount)
         {
-            // printf("Insert %d : ", randNum);
+             printf("%d Insert %d \n",i, randNum);
             Insert(randNum, head);
         }
         else if (operationsArray[i] >= memberOpCount + insertOpCount && operationsArray[i] < memberOpCount + insertOpCount + deleteOpCount)
         {
-            // printf("Delete %d : ", randNum);
+             printf("%d Delete %d \n",i, randNum);
             Delete(randNum, head);
         }
     }
+    printf("\n");
 }
 
 void *mutexProgram(void *ptr)
@@ -363,9 +368,9 @@ int main()
 
     struct list_node_s *head = NULL;
     populateLinkedList(&head, numKeys);
-    // runSerialProgram(&head, numOperations);
+     runSerialProgram(&head, numOperations);
     // runMutexProgram(&head, numOperations);
-    runRWLockProgram(&head, numOperations);
+//    runRWLockProgram(&head, numOperations);
     Traverse(head);
     return 0;
 }
