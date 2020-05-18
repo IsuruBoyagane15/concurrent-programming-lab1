@@ -117,48 +117,54 @@ void Traverse(struct list_node_s *node)
     struct list_node_s *traversingNode = node;
     while (traversingNode != NULL)
     {
-        printf(" %d ", traversingNode->data);
+//        printf(" %d ", traversingNode->data);
         traversingNode = traversingNode->next;
     }
-    printf("\n");
+//    printf("\n");
 }
 
 void populateLinkedList(struct list_node_s **head, int n)
 {
     unsigned short lfsr = time(0);
-    printf("\npopulating %d numbers...\n", n);
+//    printf("\npopulating %d numbers...\n", n);
     for (int i = 0; i < n; ++i)
     {
         int a = genUniqueRandNum(&lfsr);
         Insert(a, head);
-        printf("%d %d\n", i, a);
+//        printf("%d %d\n", i, a);
     }
     printf("\n");
 }
 
 void SerialProgram(int numOperations, struct list_node_s **head)
 {
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+
     for (int i = 0; i < numOperations; ++i)
     {
         unsigned short lfsr = rand();
         int randNum = genUniqueRandNum(&lfsr);
         if (operationsArray[i] <= memberOpCount)
         {
-            printf("%d Member %d \n", i, randNum);
+//            printf("%d Member %d \n", i, randNum);
             Member(randNum, *head);
         }
         else if (operationsArray[i] > memberOpCount && operationsArray[i] <= memberOpCount + insertOpCount)
         {
-            printf("%d Insert %d \n", i, randNum);
+//            printf("%d Insert %d \n", i, randNum);
             Insert(randNum, head);
         }
         else if (operationsArray[i] > memberOpCount + insertOpCount && operationsArray[i] <= memberOpCount + insertOpCount + deleteOpCount)
         {
-            printf("%d Delete %d \n", i, randNum);
+//            printf("%d Delete %d \n", i, randNum);
             Delete(randNum, head);
         }
     }
-    printf("\n");
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("\nSerial program took %lf seconds.\n", cpu_time_used);
 }
 
 void *mutexProgram(void *ptr)
@@ -175,21 +181,21 @@ void *mutexProgram(void *ptr)
         int randNum = genUniqueRandNum(&seed);
         if (operationsArray[i] <= memberOpCount)
         {
-            printf("%d %d Member %d \n", i, operationsArray[i], randNum);
+//            printf("%d %d Member %d \n", i, operationsArray[i], randNum);
             pthread_mutex_lock(&lock);
             Member(randNum, *head);
             pthread_mutex_unlock(&lock);
         }
         else if (operationsArray[i] > memberOpCount && operationsArray[i] <= memberOpCount + insertOpCount)
         {
-            printf("%d %d Insert %d \n", i, operationsArray[i], randNum);
+//            printf("%d %d Insert %d \n", i, operationsArray[i], randNum);
             pthread_mutex_lock(&lock);
             Insert(randNum, head);
             pthread_mutex_unlock(&lock);
         }
         else if (operationsArray[i] > memberOpCount + insertOpCount && operationsArray[i] <= memberOpCount + insertOpCount + deleteOpCount)
         {
-            printf("%d %d Delete %d \n", i, operationsArray[i], randNum);
+//            printf("%d %d Delete %d \n", i, operationsArray[i], randNum);
             pthread_mutex_lock(&lock);
             Delete(randNum, head);
             pthread_mutex_unlock(&lock);
@@ -212,21 +218,21 @@ void *readWriteLockProgram(void *ptr)
         int randNum = genUniqueRandNum(&seed);
         if (operationsArray[i] <= memberOpCount)
         {
-            printf("%d %d Member %d \n", i, operationsArray[i], randNum);
+//            printf("%d %d Member %d \n", i, operationsArray[i], randNum);
             pthread_rwlock_rdlock(&rw_lock);
             Member(randNum, *head);
             pthread_rwlock_unlock(&rw_lock);
         }
         else if (operationsArray[i] > memberOpCount && operationsArray[i] <= memberOpCount + insertOpCount)
         {
-            printf("%d %d Insert %d \n", i, operationsArray[i], randNum);
+//            printf("%d %d Insert %d \n", i, operationsArray[i], randNum);
             pthread_rwlock_wrlock(&rw_lock);
             Insert(randNum, head);
             pthread_rwlock_unlock(&rw_lock);
         }
         else if (operationsArray[i] > memberOpCount + insertOpCount && operationsArray[i] <= memberOpCount + insertOpCount + deleteOpCount)
         {
-            printf("%d %d Delete %d \n", i, operationsArray[i], randNum);
+//            printf("%d %d Delete %d \n", i, operationsArray[i], randNum);
             pthread_rwlock_wrlock(&rw_lock);
             Delete(randNum, head);
             pthread_rwlock_unlock(&rw_lock);
@@ -251,7 +257,13 @@ void runMutexProgram(struct list_node_s **header, int numOperations)
     scanf("%ld", &numThreads);
 
     threadHandles = malloc(numThreads * sizeof(pthread_t));
+
     unsigned short thread;
+
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+
     for (thread = 0; thread < numThreads; ++thread)
     {
         struct thread_args *thread_args_struct = malloc(sizeof(struct thread_args));
@@ -267,6 +279,10 @@ void runMutexProgram(struct list_node_s **header, int numOperations)
     {
         pthread_join(threadHandles[t], NULL);
     }
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("\nMutex program took %lf seconds.\n", cpu_time_used);
+
     free(threadHandles);
     pthread_mutex_destroy(&lock);
 }
@@ -282,6 +298,11 @@ void runRWLockProgram(struct list_node_s **header, int numOperations)
 
     threadHandles = malloc(numThreads * sizeof(pthread_t));
     unsigned short thread;
+
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+
     for (thread = 0; thread < numThreads; ++thread)
     {
         struct thread_args *thread_args_struct = malloc(sizeof(struct thread_args));
@@ -298,6 +319,10 @@ void runRWLockProgram(struct list_node_s **header, int numOperations)
     {
         pthread_join(threadHandles[t], NULL);
     }
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("\nRWLock program took %lf seconds.\n", cpu_time_used);
+
     free(threadHandles);
     pthread_mutex_destroy(&lock);
 }
@@ -361,8 +386,8 @@ int main()
 
     struct list_node_s *head = NULL;
     populateLinkedList(&head, numKeys);
-    // runSerialProgram(&head, numOperations);
-    // runMutexProgram(&head, numOperations);
+//     runSerialProgram(&head, numOperations);
+//     runMutexProgram(&head, numOperations);
     runRWLockProgram(&head, numOperations);
     Traverse(head);
     return 0;
