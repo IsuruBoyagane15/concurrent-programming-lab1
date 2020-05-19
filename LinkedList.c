@@ -117,21 +117,21 @@ void Traverse(struct list_node_s *node)
     struct list_node_s *traversingNode = node;
     while (traversingNode != NULL)
     {
-//        printf(" %d ", traversingNode->data);
+        printf("%d ", traversingNode->data);
         traversingNode = traversingNode->next;
     }
-//    printf("\n");
+    printf("\n");
 }
 
 void populateLinkedList(struct list_node_s **head, int n)
 {
     unsigned short lfsr = time(0);
-//    printf("\npopulating %d numbers...\n", n);
+    printf("\nPopulating %d numbers...\n", n);
     for (int i = 0; i < n; ++i)
     {
         int a = genUniqueRandNum(&lfsr);
         Insert(a, head);
-//        printf("%d %d\n", i, a);
+        printf("%d %d\n", i, a);
     }
     printf("\n");
 }
