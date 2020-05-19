@@ -330,9 +330,17 @@ void runRWLockProgram(struct list_node_s **header, int numOperations)
 void createArray(int numOperations)
 {
     operationsArray = malloc(sizeof(int) * numOperations);
-    for (int i = 0; i < numOperations; ++i)
+    for (int i = 0; i < memberOpCount; i++)
     {
-        operationsArray[i] = i + 1;
+        operationsArray[i] = 0;
+    }
+    for (int i = memberOpCount; i < memberOpCount + insertOpCount; i++)
+    {
+        operationsArray[i] = 1;
+    }
+    for (int i =  memberOpCount + insertOpCount; i <  memberOpCount + insertOpCount + deleteOpCount; i++)
+    {
+        operationsArray[i] = 2;
     }
 }
 
@@ -380,9 +388,9 @@ int main()
     printf("Enter probability of Delete operations : ");
     scanf("%f", &probDelete);
 
+    assignOperationCounts(numOperations, probMember, probInsert, probDelete);
     createArray(numOperations);
     shuffleArray(numOperations);
-    assignOperationCounts(numOperations, probMember, probInsert, probDelete);
 
     struct list_node_s *head = NULL;
     populateLinkedList(&head, numKeys);
