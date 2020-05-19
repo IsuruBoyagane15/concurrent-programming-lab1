@@ -146,17 +146,17 @@ void SerialProgram(int numOperations, struct list_node_s **head)
     {
         unsigned short lfsr = rand();
         int randNum = genUniqueRandNum(&lfsr);
-        if (operationsArray[i] <= memberOpCount)
+        if (operationsArray[i] == 0)
         {
 //            printf("%d Member %d \n", i, randNum);
             Member(randNum, *head);
         }
-        else if (operationsArray[i] > memberOpCount && operationsArray[i] <= memberOpCount + insertOpCount)
+        else if (operationsArray[i] == 1)
         {
 //            printf("%d Insert %d \n", i, randNum);
             Insert(randNum, head);
         }
-        else if (operationsArray[i] > memberOpCount + insertOpCount && operationsArray[i] <= memberOpCount + insertOpCount + deleteOpCount)
+        else if (operationsArray[i] == 2)
         {
 //            printf("%d Delete %d \n", i, randNum);
             Delete(randNum, head);
@@ -179,21 +179,21 @@ void *mutexProgram(void *ptr)
     for (int i = threadId; i < numOperations; i = i + numThreads)
     {
         int randNum = genUniqueRandNum(&seed);
-        if (operationsArray[i] <= memberOpCount)
+        if (operationsArray[i] == 0)
         {
 //            printf("%d %d Member %d \n", i, operationsArray[i], randNum);
             pthread_mutex_lock(&lock);
             Member(randNum, *head);
             pthread_mutex_unlock(&lock);
         }
-        else if (operationsArray[i] > memberOpCount && operationsArray[i] <= memberOpCount + insertOpCount)
+        else if (operationsArray[i] == 1)
         {
 //            printf("%d %d Insert %d \n", i, operationsArray[i], randNum);
             pthread_mutex_lock(&lock);
             Insert(randNum, head);
             pthread_mutex_unlock(&lock);
         }
-        else if (operationsArray[i] > memberOpCount + insertOpCount && operationsArray[i] <= memberOpCount + insertOpCount + deleteOpCount)
+        else if (operationsArray[i] == 2)
         {
 //            printf("%d %d Delete %d \n", i, operationsArray[i], randNum);
             pthread_mutex_lock(&lock);
@@ -216,21 +216,21 @@ void *readWriteLockProgram(void *ptr)
     for (int i = threadId; i < numOperations; i = i + numThreads)
     {
         int randNum = genUniqueRandNum(&seed);
-        if (operationsArray[i] <= memberOpCount)
+        if (operationsArray[i] == 0)
         {
 //            printf("%d %d Member %d \n", i, operationsArray[i], randNum);
             pthread_rwlock_rdlock(&rw_lock);
             Member(randNum, *head);
             pthread_rwlock_unlock(&rw_lock);
         }
-        else if (operationsArray[i] > memberOpCount && operationsArray[i] <= memberOpCount + insertOpCount)
+        else if (operationsArray[i] == 1)
         {
 //            printf("%d %d Insert %d \n", i, operationsArray[i], randNum);
             pthread_rwlock_wrlock(&rw_lock);
             Insert(randNum, head);
             pthread_rwlock_unlock(&rw_lock);
         }
-        else if (operationsArray[i] > memberOpCount + insertOpCount && operationsArray[i] <= memberOpCount + insertOpCount + deleteOpCount)
+        else if (operationsArray[i] == 2)
         {
 //            printf("%d %d Delete %d \n", i, operationsArray[i], randNum);
             pthread_rwlock_wrlock(&rw_lock);
