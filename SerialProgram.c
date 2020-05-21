@@ -268,7 +268,7 @@ int main()
 
     double sum;
     for (int p = 0; p<n; p++){
-//        printf("%f\n", resultsArray[p]);
+        printf("%f\n", resultsArray[p]);
         sum = sum + resultsArray[p];
     }
     printf("mean is %f\n",sum/n);
