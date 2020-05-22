@@ -126,14 +126,11 @@ void Traverse(struct list_node_s *node)
 void populateLinkedList(struct list_node_s **head, int n)
 {
     unsigned short lfsr = time(0);
-//    printf("\nPopulating %d numbers...\n", n);
     for (int i = 0; i < n; ++i)
     {
         int a = genUniqueRandNum(&lfsr);
         Insert(a, head);
-//        printf("%d %d\n", i, a);
     }
-//    printf("\n");
 }
 
 void createArray(int numOperations)
@@ -147,7 +144,7 @@ void createArray(int numOperations)
     {
         operationsArray[i] = 1;
     }
-    for (int i =  memberOpCount + insertOpCount; i <  memberOpCount + insertOpCount + deleteOpCount; i++)
+    for (int i = memberOpCount + insertOpCount; i < memberOpCount + insertOpCount + deleteOpCount; i++)
     {
         operationsArray[i] = 2;
     }
@@ -193,32 +190,21 @@ double runSerialProgram(struct list_node_s **header, int numOperations)
         int randNum = genUniqueRandNum(&lfsr);
         if (operationsArray[i] == 0)
         {
-//            printf("%d Member %d \n", i, randNum);
             Member(randNum, *head);
         }
         else if (operationsArray[i] == 1)
         {
-//            printf("%d Insert %d \n", i, randNum);
             Insert(randNum, head);
         }
         else if (operationsArray[i] == 2)
         {
-//            printf("%d Delete %d \n", i, randNum);
             Delete(randNum, head);
         }
     }
     end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-//    printf("\nSerial program took %lf seconds.\n", cpu_time_used);
-//    printf("%lf ", cpu_time_used);
+    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
     return cpu_time_used;
 }
-
-//double SerialProgram(int numOperations, struct list_node_s **head)
-//{
-//
-//}
-
 
 int main()
 {
@@ -237,18 +223,21 @@ int main()
     printf("Enter test run count: ");
     scanf("%d", &n);
 
-    if (caseNum == 1){
+    if (caseNum == 1)
+    {
         probMember = 0.99;
         probInsert = 0.005;
         probDelete = 0.005;
     }
-    else if(caseNum == 2){
+    else if (caseNum == 2)
+    {
         probMember = 0.90;
         probInsert = 0.05;
         probDelete = 0.05;
     }
 
-    else if(caseNum == 3){
+    else if (caseNum == 3)
+    {
         probMember = 0.50;
         probInsert = 0.25;
         probDelete = 0.25;
@@ -256,28 +245,28 @@ int main()
     assignOperationCounts(numOperations, probMember, probInsert, probDelete);
     resultsArray = malloc(sizeof(int) * n);
 
-    for (int r = 0; r<n; r++){
+    for (int r = 0; r < n; r++)
+    {
         createArray(numOperations);
         shuffleArray(numOperations);
-
         struct list_node_s *head = NULL;
         populateLinkedList(&head, numKeys);
         resultsArray[r] = runSerialProgram(&head, numOperations);
     }
 
     double sum;
-    for (int p = 0; p<n; p++){
-        printf("%f\n", resultsArray[p]);
+    for (int p = 0; p < n; p++)
+    {
         sum = sum + resultsArray[p];
     }
-    printf("mean is %f\n",sum/n);
-    double mean = sum/n;
+    printf("Mean is %f\n", sum / n);
+    double mean = sum / n;
 
     double sd = 0;
-    for (int q = 0; q<n; q++)
+    for (int q = 0; q < n; q++)
         sd += pow(resultsArray[q] - mean, 2);
     sd = sqrt(sd / n);
-    printf("sd is %f\n",sd);
-    printf("Suitable n is %f\n", ceil(pow(196*sd/5/mean,2)));
+    printf("Standard Deviation is %f\n", sd);
+    printf("Suitable n is %f\n", ceil(pow(196 * sd / 5 / mean, 2)));
     return 0;
 }

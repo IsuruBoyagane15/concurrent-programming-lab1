@@ -8,7 +8,6 @@
 
 unsigned bit;
 pthread_mutex_t lock;
-// pthread_mutex_t arrLock = PTHREAD_MUTEX_INITIALIZER;
 
 int *operationsArray;
 float *resultsArray;
@@ -23,7 +22,6 @@ unsigned genUniqueRandNum(unsigned short *lfsr)
     return *lfsr = (*lfsr >> 1) | (bit << 15);
 }
 
-//int Member(int value, struct list_node_s * head_p);
 struct list_node_s
 {
     int data;
@@ -129,14 +127,11 @@ void Traverse(struct list_node_s *node)
 void populateLinkedList(struct list_node_s **head, int n)
 {
     unsigned short lfsr = time(0);
-    //    printf("\nPopulating %d numbers...\n", n);
     for (int i = 0; i < n; ++i)
     {
         int a = genUniqueRandNum(&lfsr);
         Insert(a, head);
-        //        printf("%d %d\n", i, a);
     }
-    //    printf("\n");
 }
 
 void createArray(int numOperations)
@@ -194,37 +189,24 @@ void *mutexProgram(void *ptr)
     for (int i = threadId; i < numOperations; i = i + numThreads)
     {
         int randNum = genUniqueRandNum(&seed);
-        // pthread_mutex_lock(&arrLock);
         if (operationsArray[i] == 0)
         {
-            // pthread_mutex_unlock(&arrLock);
-            // printf("i %d id %d Member %d \n", i, threadId, randNum);
             pthread_mutex_lock(&lock);
             Member(randNum, *head);
             pthread_mutex_unlock(&lock);
         }
         else if (operationsArray[i] == 1)
         {
-            // pthread_mutex_unlock(&arrLock);
-            // printf("i %d id %d Insert %d \n", i, threadId, randNum);
-            // printf("%d %d Insert %d \n", i, operationsArray[i], randNum);
             pthread_mutex_lock(&lock);
             Insert(randNum, head);
             pthread_mutex_unlock(&lock);
         }
         else if (operationsArray[i] == 2)
         {
-            // pthread_mutex_unlock(&arrLock);
-            // printf("i %d id %d Delete %d \n", i, threadId, randNum);
-            // printf("%d %d Delete %d \n", i, operationsArray[i], randNum);
             pthread_mutex_lock(&lock);
             Delete(randNum, head);
             pthread_mutex_unlock(&lock);
         }
-        // else
-        // {
-        //     pthread_mutex_unlock(&arrLock);
-        // }
     }
     return EXIT_SUCCESS;
 }
@@ -321,18 +303,17 @@ int main()
     double sum;
     for (int p = 0; p < n; p++)
     {
-        printf("%f\n", resultsArray[p]);
         sum = sum + resultsArray[p];
     }
-    printf("mean is %f\n", sum / n);
+    printf("Mean is %f\n", sum / n);
     double mean = sum / n;
 
     double sd = 0;
     for (int q = 0; q < n; q++)
         sd += pow(resultsArray[q] - mean, 2);
     sd = sqrt(sd / n);
-    printf("sd is %f\n", sd);
-    printf("Suitable n is %f\n for mutex", ceil(pow(196 * sd / 5 / mean, 2)));
+    printf("Standard Deviation is %f\n", sd);
+    printf("Suitable n is %f\n", ceil(pow(196 * sd / 5 / mean, 2)));
 
     return 0;
 }

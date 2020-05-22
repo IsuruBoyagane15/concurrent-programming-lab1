@@ -128,14 +128,11 @@ void Traverse(struct list_node_s *node)
 void populateLinkedList(struct list_node_s **head, int n)
 {
     unsigned short lfsr = time(0);
-//    printf("\nPopulating %d numbers...\n", n);
     for (int i = 0; i < n; ++i)
     {
         int a = genUniqueRandNum(&lfsr);
         Insert(a, head);
-//        printf("%d %d\n", i, a);
     }
-//    printf("\n");
 }
 
 void createArray(int numOperations)
@@ -195,21 +192,18 @@ void *readWriteLockProgram(void *ptr)
         int randNum = genUniqueRandNum(&seed);
         if (operationsArray[i] == 0)
         {
-//            printf("%d %d Member %d \n", i, operationsArray[i], randNum);
             pthread_rwlock_rdlock(&rw_lock);
             Member(randNum, *head);
             pthread_rwlock_unlock(&rw_lock);
         }
         else if (operationsArray[i] == 1)
         {
-//            printf("%d %d Insert %d \n", i, operationsArray[i], randNum);
             pthread_rwlock_wrlock(&rw_lock);
             Insert(randNum, head);
             pthread_rwlock_unlock(&rw_lock);
         }
         else if (operationsArray[i] == 2)
         {
-//            printf("%d %d Delete %d \n", i, operationsArray[i], randNum);
             pthread_rwlock_wrlock(&rw_lock);
             Delete(randNum, head);
             pthread_rwlock_unlock(&rw_lock);
@@ -308,17 +302,16 @@ int main()
 
     double sum;
     for (int p = 0; p<n; p++){
-        printf("%f\n", resultsArray[p]);
         sum = sum + resultsArray[p];
     }
-    printf("mean is %f\n",sum/n);
+    printf("Mean is %f\n",sum/n);
     double mean = sum/n;
 
     double sd = 0;
     for (int q = 0; q<n; q++)
         sd += pow(resultsArray[q] - mean, 2);
     sd = sqrt(sd / n);
-    printf("sd is %f\n",sd);
+    printf("Standard Deviation is %f\n",sd);
     printf("Suitable n is %f\n", ceil(pow(196*sd/5/mean,2)));
     return 0;
 }
