@@ -267,6 +267,5 @@ int main()
         sd += pow(resultsArray[q] - mean, 2);
     sd = sqrt(sd / n);
     printf("Standard Deviation is %f\n", sd);
-    printf("Suitable n is %f\n", ceil(pow(196 * sd / 5 / mean, 2)));
     return 0;
 }
