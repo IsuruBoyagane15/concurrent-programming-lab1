@@ -1,10 +1,3 @@
-/*
- * Linked List with a single mutex for the whole list
- *
- * Compile : gcc -g -Wall -o mutex_linked_list mutex_linked_list.c
- * Run : ./mutex_linked_list <n> <m> <mMember> <mInsert> <mDelete>
- *
- * */
 #include<stdio.h>
 #include<stdlib.h>
 #include <sys/time.h>
@@ -13,30 +6,21 @@
 #define MAX_THREADS 1024
 #define MAX_RANDOM 65535
 
-// Count variables to store each thread operation execution times
-int count_member = 0;
-int count_insert = 0;
-int count_delete = 0;
+int count_member;
+int count_insert;
+int count_delete;
 
-// Number of nodes in the linked list
 int n = 0;
-
-// Number of random operations in the linked list
 int m = 0;
-
-// Number of threads to execute
 int thread_count = 0;
 
-// Fractions of each operation
-float m_insert_frac = 0.0, m_delete_frac = 0.0, m_member_frac = 0.0;
+float m_insert_frac, m_delete_frac, m_member_frac;
 
-// Total number of each operation
-float m_insert = 0.0, m_delete = 0.0, m_member = 0.0;
+float m_insert, m_delete, m_member;
 
 struct list_node_s *head = NULL;
 pthread_mutex_t mutex;
 
-// Node definition
 struct list_node_s {
     int data;
     struct list_node_s *next;
@@ -50,65 +34,88 @@ int Member(int value, struct list_node_s *head_p);
 
 double CalcTime(struct timeval time_begin, struct timeval time_end);
 
-void getInput(int argc, char *argv[]);
-
 void *Thread_Operation();
-
 
 int main(int argc, char *argv[]) {
 
-    // Obtaining the inputs
-    getInput(argc, argv);
+    int n = 1000;
+    int m = 10000;
+    int caseNum;
+//    int numTests;
+    long thread_count;
+
+    float probMember;
+    float probInsert;
+    float probDelete;
+
+    printf("Enter case number : ");
+    scanf("%d", &caseNum);
+
+//    printf("Enter test run count: ");
+//    scanf("%d", &numTests);
+
+    printf("Enter number of threads: ");
+    scanf("%ld", &thread_count);
+
+    if (caseNum == 1)
+    {
+        probMember = 0.99;
+        probInsert = 0.005;
+        probDelete = 0.005;
+    }
+    else if (caseNum == 2)
+    {
+        probMember = 0.90;
+        probInsert = 0.05;
+        probDelete = 0.05;
+    }
+
+    else if (caseNum == 3)
+    {
+        probMember = 0.50;
+        probInsert = 0.25;
+        probDelete = 0.25;
+    }
 
     pthread_t *thread_handlers;
     thread_handlers = malloc(sizeof(pthread_t) * thread_count);
 
-    // time variables
-    struct timeval time_begin, time_end;
+    m_insert = probInsert * m;
+    m_delete = probDelete * m;
+    m_member = probMember * m;
 
-    // Calculating the total number od each operation
-    m_insert = m_insert_frac * m;
-    m_delete = m_delete_frac * m;
-    m_member = m_member_frac * m;
-
-    // Linked List Generation with Random values
     int i = 0;
     while (i < n) {
         if (Insert(rand() % 65535, &head) == 1)
             i++;
     }
 
-    // Initializing the mutex
     pthread_mutex_init(&mutex, NULL);
 
-    // Getting the begin time stamp
-    gettimeofday(&time_begin, NULL);
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
 
-    // Thread Creation
     i = 0;
     while (i < thread_count) {
         pthread_create(&thread_handlers[i], NULL, (void *) Thread_Operation, NULL);
         i++;
     }
 
-    // Thread Join
     i = 0;
     while (i < thread_count) {
         pthread_join(thread_handlers[i], NULL);
         i++;
     }
 
-    // Getting the end time stamp
-    gettimeofday(&time_end, NULL);
+    end = clock();
+    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
 
-    // Destroying the mutex
     pthread_mutex_destroy(&mutex);
-
-    printf("Linked List with a single mutex Time Spent : %.6f secs\n", CalcTime(time_begin, time_end));
+    printf("Linked List with a single mutex Time Spent : %.6f secs\n", cpu_time_used);
 
     return 0;
 }
-
 
 // Linked List Membership function
 int Member(int value, struct list_node_s *head_p) {
@@ -179,49 +186,6 @@ int Delete(int value, struct list_node_s **head_pp) {
         return 0;
 }
 
-//Getting the inputs
-void getInput(int argc, char *argv[]) {
-
-    // Validating the number of arguements
-    if (argc != 7) {
-        printf("Please give the command: ./serial_linked_list <n> <m> <thread_count> <mMember> <mInsert> <mDelete>\n");
-        exit(0);
-    }
-
-    // Setting the input values of n,m and thread count
-    n = (int) strtol(argv[1], (char **) NULL, 10);
-    m = (int) strtol(argv[2], (char **) NULL, 10);
-    thread_count = (int) strtol(argv[3], (char **) NULL, 10);
-
-    // Setting the input values of operation fraction values
-    m_member_frac = (float) atof(argv[4]);
-    m_insert_frac = (float) atof(argv[5]);
-    m_delete_frac = (float) atof(argv[6]);
-
-    // Validating the thread count
-    if (thread_count <= 0 || thread_count > MAX_THREADS) {
-        printf("Please give provide a valid number of threads in the range of 0 to %d\n", MAX_THREADS);
-        exit(0);
-    }
-
-    //Validating the arguments
-    if (n <= 0 || m <= 0 || m_member_frac + m_insert_frac + m_delete_frac != 1.0) {
-        printf("Please give the command with the arguements: ./serial_linked_list <n> <m> <mMember> <mInsert> <mDelete>\n");
-
-        if (n <= 0)
-            printf("Please provide a valid number of nodes for the linked list (value of n)\n");
-
-        if (m <= 0)
-            printf("Please provide a valid number of operations for the linked list (value of m)\n");
-
-        if (m_member_frac + m_insert_frac + m_delete_frac != 1.0)
-            printf("Please provide valid fractions of operations for the linked list (value of mMember, mInsert, mDelete)\n");
-
-        exit(0);
-    }
-}
-
-// Thread Operations
 void *Thread_Operation() {
 
     int count_tot = 0;
