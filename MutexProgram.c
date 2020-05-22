@@ -7,8 +7,8 @@
 #include <math.h>
 
 unsigned bit;
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_rwlock_t rw_lock = PTHREAD_RWLOCK_INITIALIZER;
+pthread_mutex_t lock;
+// pthread_mutex_t arrLock = PTHREAD_MUTEX_INITIALIZER;
 
 int *operationsArray;
 float *resultsArray;
@@ -129,14 +129,14 @@ void Traverse(struct list_node_s *node)
 void populateLinkedList(struct list_node_s **head, int n)
 {
     unsigned short lfsr = time(0);
-//    printf("\nPopulating %d numbers...\n", n);
+    //    printf("\nPopulating %d numbers...\n", n);
     for (int i = 0; i < n; ++i)
     {
         int a = genUniqueRandNum(&lfsr);
         Insert(a, head);
-//        printf("%d %d\n", i, a);
+        //        printf("%d %d\n", i, a);
     }
-//    printf("\n");
+    //    printf("\n");
 }
 
 void createArray(int numOperations)
@@ -150,7 +150,7 @@ void createArray(int numOperations)
     {
         operationsArray[i] = 1;
     }
-    for (int i =  memberOpCount + insertOpCount; i <  memberOpCount + insertOpCount + deleteOpCount; i++)
+    for (int i = memberOpCount + insertOpCount; i < memberOpCount + insertOpCount + deleteOpCount; i++)
     {
         operationsArray[i] = 2;
     }
@@ -194,27 +194,37 @@ void *mutexProgram(void *ptr)
     for (int i = threadId; i < numOperations; i = i + numThreads)
     {
         int randNum = genUniqueRandNum(&seed);
+        // pthread_mutex_lock(&arrLock);
         if (operationsArray[i] == 0)
         {
-//            printf("%d %d Member %d \n", i, operationsArray[i], randNum);
+            // pthread_mutex_unlock(&arrLock);
+            // printf("i %d id %d Member %d \n", i, threadId, randNum);
             pthread_mutex_lock(&lock);
             Member(randNum, *head);
             pthread_mutex_unlock(&lock);
         }
         else if (operationsArray[i] == 1)
         {
-//            printf("%d %d Insert %d \n", i, operationsArray[i], randNum);
+            // pthread_mutex_unlock(&arrLock);
+            // printf("i %d id %d Insert %d \n", i, threadId, randNum);
+            // printf("%d %d Insert %d \n", i, operationsArray[i], randNum);
             pthread_mutex_lock(&lock);
             Insert(randNum, head);
             pthread_mutex_unlock(&lock);
         }
         else if (operationsArray[i] == 2)
         {
-//            printf("%d %d Delete %d \n", i, operationsArray[i], randNum);
+            // pthread_mutex_unlock(&arrLock);
+            // printf("i %d id %d Delete %d \n", i, threadId, randNum);
+            // printf("%d %d Delete %d \n", i, operationsArray[i], randNum);
             pthread_mutex_lock(&lock);
             Delete(randNum, head);
             pthread_mutex_unlock(&lock);
         }
+        // else
+        // {
+        //     pthread_mutex_unlock(&arrLock);
+        // }
     }
     return EXIT_SUCCESS;
 }
@@ -223,6 +233,8 @@ double runMutexProgram(struct list_node_s **header, int numOperations, long numT
 {
     struct list_node_s **head = header;
     pthread_t *threadHandles;
+
+    pthread_mutex_init(&lock, NULL);
 
     threadHandles = malloc(numThreads * sizeof(pthread_t));
     unsigned short thread;
@@ -250,7 +262,7 @@ double runMutexProgram(struct list_node_s **header, int numOperations, long numT
     pthread_mutex_destroy(&lock);
 
     end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
     return cpu_time_used;
 }
 
@@ -275,26 +287,29 @@ int main()
     printf("Enter number of threads: ");
     scanf("%ld", &numThreads);
 
-    if (caseNum == 1){
+    if (caseNum == 1)
+    {
         probMember = 0.99;
         probInsert = 0.005;
         probDelete = 0.005;
     }
-    else if(caseNum == 2){
+    else if (caseNum == 2)
+    {
         probMember = 0.90;
         probInsert = 0.05;
         probDelete = 0.05;
     }
 
-    else if(caseNum == 3){
+    else if (caseNum == 3)
+    {
         probMember = 0.50;
         probInsert = 0.25;
         probDelete = 0.25;
     }
     assignOperationCounts(numOperations, probMember, probInsert, probDelete);
     resultsArray = malloc(sizeof(int) * n);
-
-    for (int r = 0; r<n; r++){
+    for (int r = 0; r < n; r++)
+    {
         createArray(numOperations);
         shuffleArray(numOperations);
 
@@ -304,19 +319,20 @@ int main()
     }
 
     double sum;
-    for (int p = 0; p<n; p++){
+    for (int p = 0; p < n; p++)
+    {
         printf("%f\n", resultsArray[p]);
         sum = sum + resultsArray[p];
     }
-    printf("mean is %f\n",sum/n);
-    double mean = sum/n;
+    printf("mean is %f\n", sum / n);
+    double mean = sum / n;
 
     double sd = 0;
-    for (int q = 0; q<n; q++)
+    for (int q = 0; q < n; q++)
         sd += pow(resultsArray[q] - mean, 2);
     sd = sqrt(sd / n);
-    printf("sd is %f\n",sd);
-    printf("Suitable n is %f\n", ceil(pow(196*sd/5/mean,2)));
+    printf("sd is %f\n", sd);
+    printf("Suitable n is %f\n for mutex", ceil(pow(196 * sd / 5 / mean, 2)));
 
     return 0;
 }

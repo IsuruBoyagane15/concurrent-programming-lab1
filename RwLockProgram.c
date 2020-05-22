@@ -7,8 +7,7 @@
 #include <math.h>
 
 unsigned bit;
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_rwlock_t rw_lock = PTHREAD_RWLOCK_INITIALIZER;
+pthread_rwlock_t rw_lock;
 
 int *operationsArray;
 float *resultsArray;
@@ -224,6 +223,8 @@ double runRWLockProgram(struct list_node_s **header, int numOperations, long num
     struct list_node_s **head = header;
     pthread_t *threadHandles;
 
+    pthread_rwlock_init(&rw_lock, NULL);
+
     threadHandles = malloc(numThreads * sizeof(pthread_t));
     unsigned short thread;
 
@@ -249,7 +250,7 @@ double runRWLockProgram(struct list_node_s **header, int numOperations, long num
     }
 
     free(threadHandles);
-    pthread_mutex_destroy(&lock);
+    pthread_mutex_destroy(&rw_lock);
 
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;

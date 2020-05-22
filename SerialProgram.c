@@ -226,7 +226,6 @@ int main()
     long numOperations = 10000;
     int caseNum;
     int n;
-    long numThreads;
 
     float probMember;
     float probInsert;
