@@ -250,7 +250,7 @@ double runRWLockProgram(struct list_node_s **header, int numOperations, long num
     }
 
     free(threadHandles);
-    pthread_mutex_destroy(&rw_lock);
+    pthread_rwlock_destroy(&rw_lock);
 
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
